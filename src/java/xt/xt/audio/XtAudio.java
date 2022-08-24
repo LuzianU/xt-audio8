@@ -6,9 +6,6 @@ import com.sun.jna.Pointer;
 
 import xt.audio.Callbacks.XtOnError;
 import xt.audio.Enums.XtSample;
-import xt.audio.Structs.XtAttributes;
-import xt.audio.Structs.XtErrorInfo;
-import xt.audio.Structs.XtVersion;
 import xt.audio.NativeCallbacks.NativeOnError;
 import xt.audio.NativeCallbacks.WinX86NativeOnError;
 import static xt.audio.Utility.handleAssert;
@@ -21,18 +18,18 @@ public final class XtAudio {
 
     static { Native.register(Utility.LIBRARY); }
 
-    private static native XtVersion.ByValue XtAudioGetVersion();
+    private static native Structs.XtVersion.ByValue XtAudioGetVersion();
     private static native void XtAudioSetOnError(NativeOnError onError);
     private static native Pointer XtAudioInit(String id, Pointer window);
-    private static native XtErrorInfo.ByValue XtAudioGetErrorInfo(long error);
-    private static native XtAttributes.ByValue XtAudioGetSampleAttributes(XtSample sample);
+    private static native Structs.XtErrorInfo.ByValue XtAudioGetErrorInfo(long error);
+    private static native Structs.XtAttributes.ByValue XtAudioGetSampleAttributes(XtSample sample);
 
     private XtAudio() {}
 
-    public static XtVersion getVersion() { return handleAssert(XtAudioGetVersion()); }
-    public static XtErrorInfo getErrorInfo(long error) { return handleAssert(XtAudioGetErrorInfo(error)); }
+    public static Structs.XtVersion getVersion() { return handleAssert(XtAudioGetVersion()); }
+    public static Structs.XtErrorInfo getErrorInfo(long error) { return handleAssert(XtAudioGetErrorInfo(error)); }
     public static XtPlatform init(String id, Pointer window) { return new XtPlatform(handleAssert(XtAudioInit(id, window))); }
-    public static XtAttributes getSampleAttributes(XtSample sample) { return handleAssert(XtAudioGetSampleAttributes(sample)); }
+    public static Structs.XtAttributes getSampleAttributes(XtSample sample) { return handleAssert(XtAudioGetSampleAttributes(sample)); }
 
     public static void setOnError(XtOnError onError) {
         _onError = onError;

@@ -2,10 +2,7 @@ package xt.audio;
 
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
-import xt.audio.Enums.XtSample;
-import xt.audio.Structs.XtAttributes;
-import xt.audio.Structs.XtBuffer;
-import xt.audio.Structs.XtFormat;
+
 import java.lang.reflect.Array;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,16 +10,8 @@ import java.util.Map;
 public final class XtSafeBuffer implements AutoCloseable {
 
     static final Map<XtStream, XtSafeBuffer> _map = new HashMap<>();
-    static final Map<XtSample, Class<?>> _types = Map.of(
-            XtSample.UINT8, byte.class,
-            XtSample.INT16, short.class,
-            XtSample.INT24, byte.class,
-            XtSample.INT32, int.class,
-            XtSample.FLOAT32, float.class
-    );
-
     public static XtSafeBuffer register(XtStream stream) {
-        var result = new XtSafeBuffer(stream);
+        XtSafeBuffer result = new XtSafeBuffer(stream);
         _map.put(stream, result);
         return result;
     }
@@ -32,8 +21,8 @@ public final class XtSafeBuffer implements AutoCloseable {
     private final Object _input;
     private final Object _output;
     private final XtStream _stream;
-    private final XtFormat _format;
-    private final XtAttributes _attrs;
+    private final Structs.XtFormat _format;
+    private final Structs.XtAttributes _attrs;
     private final boolean _interleaved;
 
     public Object getInput() { return _input; }
@@ -53,46 +42,66 @@ public final class XtSafeBuffer implements AutoCloseable {
     }
 
     Object createBuffer(int channels) {
-        var type = _types.get(_format.mix.sample);
+        /*
+            XtSample.UINT8, byte.class,
+            XtSample.INT16, short.class,
+            XtSample.INT24, byte.class,
+            XtSample.INT32, int.class,
+            XtSample.FLOAT32, float.class
+         */
+        //Class<?> type = _types.get(_format.mix.sample);
+        Class<?> type = float.class;
+        if (_format.mix.sample == Enums.XtSample.UINT8) {
+            type = byte.class;
+        } else if (_format.mix.sample == Enums.XtSample.INT16) {
+            type = short.class;
+        } else if (_format.mix.sample == Enums.XtSample.INT24) {
+            type = byte.class;
+        } else if (_format.mix.sample == Enums.XtSample.INT32) {
+            type = int.class;
+        } else if (_format.mix.sample == Enums.XtSample.FLOAT32) {
+            type = float.class;
+        } else
+            System.err.println("@createBuffer");
         int elems = _stream.getFrames() * _attrs.count;
         if(_interleaved) return Array.newInstance(type, channels * elems);
-        var channelType = Array.newInstance(type, 0).getClass();
-        var result = Array.newInstance(channelType, channels);
+        Class<?> channelType = Array.newInstance(type, 0).getClass();
+        Object result = Array.newInstance(channelType, channels);
         for(int i = 0; i < channels; i++) Array.set(result, i, Array.newInstance(type, elems));
         return result;
     }
 
-    public void lock(XtBuffer buffer) {
+    public void lock(Structs.XtBuffer buffer) {
         if(buffer.input == Pointer.NULL) return;
         if(_interleaved) lockInterleaved(buffer);
         else for(int i = 0; i < _inputs; i++) lockChannel(buffer, i);
     }
 
-    public void unlock(XtBuffer buffer) {
+    public void unlock(Structs.XtBuffer buffer) {
         if(buffer.output == Pointer.NULL) return;
         if(_interleaved) unlockInterleaved(buffer);
         else for(int i = 0; i < _outputs; i++) unlockChannel(buffer, i);
     }
 
-    void lockInterleaved(XtBuffer buffer) {
+    void lockInterleaved(Structs.XtBuffer buffer) {
         int elems = _inputs * buffer.frames * _attrs.count;
         fromNative(buffer.input, _input, elems);
     }
 
-    void unlockInterleaved(XtBuffer buffer) {
+    void unlockInterleaved(Structs.XtBuffer buffer) {
         int elems = _outputs * buffer.frames * _attrs.count;
         toNative(_output, buffer.output, elems);
     }
 
-    void lockChannel(XtBuffer buffer, int channel) {
+    void lockChannel(Structs.XtBuffer buffer, int channel) {
         int elems = buffer.frames * _attrs.count;
-        var channelBuffer = buffer.input.getPointer(channel * Native.POINTER_SIZE);
+        Pointer channelBuffer = buffer.input.getPointer(channel * Native.POINTER_SIZE);
         fromNative(channelBuffer, Array.get(_input, channel), elems);
     }
 
-    void unlockChannel(XtBuffer buffer, int channel) {
+    void unlockChannel(Structs.XtBuffer buffer, int channel) {
         int elems = buffer.frames * _attrs.count;
-        var channelBuffer = buffer.output.getPointer(channel * Native.POINTER_SIZE);
+        Pointer channelBuffer = buffer.output.getPointer(channel * Native.POINTER_SIZE);
         toNative(Array.get(_output, channel), channelBuffer, elems);
     }
 

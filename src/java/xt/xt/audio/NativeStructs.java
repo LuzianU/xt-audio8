@@ -5,9 +5,7 @@ import com.sun.jna.Structure;
 import xt.audio.NativeCallbacks.NativeOnBuffer;
 import xt.audio.NativeCallbacks.NativeOnRunning;
 import xt.audio.NativeCallbacks.NativeOnXRun;
-import xt.audio.Structs.XtChannels;
-import xt.audio.Structs.XtFormat;
-import xt.audio.Structs.XtMix;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -15,7 +13,7 @@ interface NativeStructs {
 
     public static class DeviceStreamParams extends Structure {
         public StreamParams stream;
-        public XtFormat format;
+        public Structs.XtFormat format;
         public double bufferSize;
         public DeviceStreamParams() {}
         @Override protected List getFieldOrder() { return Arrays.asList("stream", "format", "bufferSize"); }
@@ -23,7 +21,7 @@ interface NativeStructs {
 
     public static class AggregateDeviceParams extends Structure {
         public Pointer device;
-        public XtChannels channels;
+        public Structs.XtChannels channels;
         public double bufferSize;
         public AggregateDeviceParams() {}
         public static class ByValue extends AggregateDeviceParams implements Structure.ByValue {}
@@ -34,7 +32,7 @@ interface NativeStructs {
         public StreamParams stream;
         public Pointer devices;
         public int count;
-        public XtMix mix;
+        public Structs.XtMix mix;
         public Pointer master;
         public AggregateStreamParams() {}
         @Override protected List getFieldOrder() { return Arrays.asList("stream", "devices", "count", "mix", "master"); }

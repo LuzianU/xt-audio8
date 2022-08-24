@@ -5,7 +5,7 @@ import com.sun.jna.Pointer;
 import com.sun.jna.ptr.IntByReference;
 import java.nio.charset.Charset;
 import java.util.EnumSet;
-import xt.audio.Enums.XtDeviceCaps;
+
 import static xt.audio.Utility.handleAssert;
 import static xt.audio.Utility.handleError;
 
@@ -20,37 +20,37 @@ public final class XtDeviceList implements AutoCloseable {
 
     private Pointer _l;
     XtDeviceList(Pointer l) { _l = l; }
-    @Override public void close() { handleAssert(() -> XtDeviceListDestroy(_l)); _l = Pointer.NULL; }
+    @Override public void close() { Utility.handleAssert(() -> XtDeviceListDestroy(_l));_l = Pointer.NULL; }
 
     public int getCount() {
-        var count = new IntByReference();
-        handleError(XtDeviceListGetCount(_l, count));
+        IntByReference count = new IntByReference();
+        Utility.handleError(XtDeviceListGetCount(_l, count));
         return count.getValue();
     }
 
-    public EnumSet<XtDeviceCaps> getCapabilities(String id) {
-        var flags = new IntByReference();
-        var result = EnumSet.noneOf(XtDeviceCaps.class);
-        handleError(XtDeviceListGetCapabilities(_l, id, flags));
-        for(XtDeviceCaps caps: XtDeviceCaps.values())
+    public EnumSet<Enums.XtDeviceCaps> getCapabilities(String id) {
+        IntByReference flags = new IntByReference();
+        EnumSet<Enums.XtDeviceCaps> result = EnumSet.noneOf(Enums.XtDeviceCaps.class);
+        Utility.handleError(XtDeviceListGetCapabilities(_l, id, flags));
+        for(Enums.XtDeviceCaps caps: Enums.XtDeviceCaps.values())
             if((flags.getValue() & caps._flag) != 0)
                 result.add(caps);
         return result;
     }
 
     public String getId(int index) {
-        var size = new IntByReference();
-        handleError(XtDeviceListGetId(_l, index, null, size));
+        IntByReference size = new IntByReference();
+        Utility.handleError(XtDeviceListGetId(_l, index, null, size));
         byte[] buffer = new byte[size.getValue()];
-        handleError(XtDeviceListGetId(_l, index, buffer, size));
+        Utility.handleError(XtDeviceListGetId(_l, index, buffer, size));
         return new String(buffer, 0, size.getValue() - 1, Charset.forName("UTF-8"));
     }
 
     public String getName(String id) {
-        var size = new IntByReference();
-        handleError(XtDeviceListGetName(_l, id, null, size));
+        IntByReference size = new IntByReference();
+        Utility.handleError(XtDeviceListGetName(_l, id, null, size));
         byte[] buffer = new byte[size.getValue()];
-        handleError(XtDeviceListGetName(_l, id, buffer, size));
+        Utility.handleError(XtDeviceListGetName(_l, id, buffer, size));
         return new String(buffer, 0, size.getValue() - 1, Charset.forName("UTF-8"));
     }
 }

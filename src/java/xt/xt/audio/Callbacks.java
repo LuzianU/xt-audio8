@@ -1,7 +1,5 @@
 package xt.audio;
 
-import xt.audio.Structs.XtBuffer;
-
 public interface Callbacks {
 
     interface XtOnError  {
@@ -13,7 +11,7 @@ public interface Callbacks {
     }
 
     interface XtOnBuffer {
-        int callback(XtStream stream, XtBuffer buffer, Object user) throws Exception;
+        int callback(XtStream stream, Structs.XtBuffer buffer, Object user) throws Exception;
     }
 
     interface XtOnRunning {

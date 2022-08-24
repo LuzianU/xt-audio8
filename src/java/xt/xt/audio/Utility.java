@@ -6,7 +6,7 @@ import xt.audio.Enums.XtCause;
 import xt.audio.Enums.XtSample;
 import xt.audio.Enums.XtSetup;
 import xt.audio.Enums.XtSystem;
-import xt.audio.Structs.XtErrorInfo;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,7 +39,7 @@ class Utility {
 
     static final NativeLibrary LIBRARY;
     static native String XtAudioGetLastAssert();
-    static native String XtPrintErrorInfo(XtErrorInfo info);
+    static native String XtPrintErrorInfo(Structs.XtErrorInfo info);
     private static native void XtAudioSetAssertTerminates(boolean terminates);
 
     static {
@@ -81,7 +81,7 @@ class Utility {
 
     static void handleAssert()
     {
-        var assertion = XtAudioGetLastAssert();
+        String assertion = XtAudioGetLastAssert();
         if (assertion != null) throw new AssertionError(assertion);
     }
 }

@@ -3,7 +3,7 @@
     <name>XT-Audio</name>
     <packaging>jar</packaging>
     <version>2.0</version>
-    <artifactId>xt.audio</artifactId>
+    <artifactId>xt.audio8</artifactId>
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.sjoerdvankreel</groupId>
     <url>https://sjoerdvankreel.github.io/xt-audio/</url>
@@ -36,7 +36,7 @@
     </scm>
     <dependencies>
         <dependency>
-            <version>5.10.0</version>
+            <version>5.12.1</version>
             <artifactId>jna</artifactId>
             <groupId>net.java.dev.jna</groupId>
         </dependency>
@@ -51,8 +51,8 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>17</source>
-                    <target>17</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
             </plugin>
             <plugin>

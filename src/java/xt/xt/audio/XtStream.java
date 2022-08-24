@@ -4,16 +4,7 @@ import com.sun.jna.Native;
 import com.sun.jna.Platform;
 import com.sun.jna.Pointer;
 import com.sun.jna.ptr.IntByReference;
-import xt.audio.Structs.XtBuffer;
-import xt.audio.Structs.XtFormat;
-import xt.audio.Structs.XtLatency;
-import xt.audio.Structs.XtStreamParams;
-import xt.audio.NativeCallbacks.NativeOnBuffer;
-import xt.audio.NativeCallbacks.NativeOnRunning;
-import xt.audio.NativeCallbacks.NativeOnXRun;
-import xt.audio.NativeCallbacks.WinX86NativeOnBuffer;
-import xt.audio.NativeCallbacks.WinX86NativeOnRunning;
-import xt.audio.NativeCallbacks.WinX86NativeOnXRun;
+
 import static xt.audio.Utility.handleAssert;
 import static xt.audio.Utility.handleError;
 
@@ -25,56 +16,56 @@ public final class XtStream implements AutoCloseable {
     private static native void XtStreamDestroy(Pointer s);
     private static native Pointer XtStreamGetHandle(Pointer s);
     private static native boolean XtStreamIsRunning(Pointer s);
-    private static native XtFormat XtStreamGetFormat(Pointer s);
+    private static native Structs.XtFormat XtStreamGetFormat(Pointer s);
     private static native boolean XtStreamIsInterleaved(Pointer s);
-    private static native long XtStreamGetLatency(Pointer s, XtLatency latency);
+    private static native long XtStreamGetLatency(Pointer s, Structs.XtLatency latency);
     private static native long XtStreamGetFrames(Pointer s, IntByReference frames);
 
     private Pointer _s;
-    private XtFormat _format;
+    private Structs.XtFormat _format;
 
     private final Object _user;
-    private final XtStreamParams _params;
-    private final NativeOnXRun _onNativeXRun;
-    private final NativeOnBuffer _onNativeBuffer;
-    private final NativeOnRunning _onNativeRunning;
-    private final XtBuffer _buffer = new XtBuffer();
-    private final XtLatency _latency = new XtLatency();
+    private final Structs.XtStreamParams _params;
+    private final NativeCallbacks.NativeOnXRun _onNativeXRun;
+    private final NativeCallbacks.NativeOnBuffer _onNativeBuffer;
+    private final NativeCallbacks.NativeOnRunning _onNativeRunning;
+    private final Structs.XtBuffer _buffer = new Structs.XtBuffer();
+    private final Structs.XtLatency _latency = new Structs.XtLatency();
     private final IntByReference _frames = new IntByReference();
 
-    public XtFormat getFormat() { return _format; }
-    public void start() { handleError(XtStreamStart(_s)); }
-    public void stop() { handleAssert(() -> XtStreamStop(_s));}
-    public Pointer getHandle() { return handleAssert(XtStreamGetHandle(_s)); }
-    public boolean isRunning() { return handleAssert(XtStreamIsRunning(_s)); }
-    public boolean isInterleaved() { return handleAssert(XtStreamIsInterleaved(_s)); }
-    @Override public void close() { handleAssert(() -> XtStreamDestroy(_s)); _s = Pointer.NULL; }
+    public Structs.XtFormat getFormat() { return _format; }
+    public void start() { Utility.handleError(XtStreamStart(_s)); }
+    public void stop() { Utility.handleAssert(() -> XtStreamStop(_s));}
+    public Pointer getHandle() { return Utility.handleAssert(XtStreamGetHandle(_s)); }
+    public boolean isRunning() { return Utility.handleAssert(XtStreamIsRunning(_s)); }
+    public boolean isInterleaved() { return Utility.handleAssert(XtStreamIsInterleaved(_s)); }
+    @Override public void close() { Utility.handleAssert(() -> XtStreamDestroy(_s));_s = Pointer.NULL; }
 
-    NativeOnXRun onNativeXRun() { return _onNativeXRun; }
-    NativeOnBuffer onNativeBuffer() { return _onNativeBuffer; }
-    NativeOnRunning onNativeRunning() { return _onNativeRunning; }
+    NativeCallbacks.NativeOnXRun onNativeXRun() { return _onNativeXRun; }
+    NativeCallbacks.NativeOnBuffer onNativeBuffer() { return _onNativeBuffer; }
+    NativeCallbacks.NativeOnRunning onNativeRunning() { return _onNativeRunning; }
 
-    XtStream(XtStreamParams params, Object user) {
+    XtStream(Structs.XtStreamParams params, Object user) {
         _user = user;
         _params = params;
         boolean stdcall = Platform.isWindows() && !Platform.is64Bit();
-        _onNativeXRun = stdcall? (WinX86NativeOnXRun) this::onXRun: (NativeOnXRun)this::onXRun;
-        _onNativeBuffer = stdcall? (WinX86NativeOnBuffer) this::onBuffer: (NativeOnBuffer)this::onBuffer;
-        _onNativeRunning = stdcall? (WinX86NativeOnRunning) this::onRunning: (NativeOnRunning)this::onRunning;
+        _onNativeXRun = stdcall? (NativeCallbacks.WinX86NativeOnXRun) this::onXRun: (NativeCallbacks.NativeOnXRun)this::onXRun;
+        _onNativeBuffer = stdcall? (NativeCallbacks.WinX86NativeOnBuffer) this::onBuffer: (NativeCallbacks.NativeOnBuffer)this::onBuffer;
+        _onNativeRunning = stdcall? (NativeCallbacks.WinX86NativeOnRunning) this::onRunning: (NativeCallbacks.NativeOnRunning)this::onRunning;
     }
 
     void init(Pointer s) {
         _s = s;
-        _format = handleAssert(XtStreamGetFormat(_s));
+        _format = Utility.handleAssert(XtStreamGetFormat(_s));
     }
 
     public int getFrames() {
-        handleError(XtStreamGetFrames(_s, _frames));
+        Utility.handleError(XtStreamGetFrames(_s, _frames));
         return _frames.getValue();
     }
 
-    public XtLatency getLatency() {
-        handleError(XtStreamGetLatency(_s, _latency));
+    public Structs.XtLatency getLatency() {
+        Utility.handleError(XtStreamGetLatency(_s, _latency));
         return _latency;
     }
 
@@ -83,7 +74,7 @@ public final class XtStream implements AutoCloseable {
     }
 
     private int onBuffer(Pointer stream, Pointer buffer, Pointer user) throws Exception {
-        for(int i = 0; i < Native.getNativeSize(XtBuffer.ByValue.class); i++)
+        for(int i = 0; i < Native.getNativeSize(Structs.XtBuffer.ByValue.class); i++)
             _buffer.getPointer().setByte(i, buffer.getByte(i));
         _buffer.read();
         return _params.onBuffer.callback(this, _buffer, _user);
